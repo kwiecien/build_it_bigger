@@ -43,8 +43,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tellJoke(View view) {
-        Toast.makeText(this, Jokes.getJoke(), Toast.LENGTH_SHORT).show();
-        startActivity(JokeActivity.newIntent(this, Jokes.getJoke()));
+        String joke = Jokes.getJoke();
+        Toast.makeText(this, joke, Toast.LENGTH_SHORT).show();
+        startActivity(JokeActivity.newIntent(this, joke));
     }
 
 
