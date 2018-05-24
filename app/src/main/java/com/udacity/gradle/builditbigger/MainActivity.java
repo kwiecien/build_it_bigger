@@ -1,5 +1,6 @@
 package com.udacity.gradle.builditbigger;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -7,11 +8,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.google.common.base.Strings;
 import com.kk.androidjokes.JokeActivity;
-import com.kk.javajokes.Jokes;
+import com.udacity.gradle.builditbigger.backend.myApi.MyApi;
+
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    private static String mJoke = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +29,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new EndpointAsyncTask().execute();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -43,9 +58,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tellJoke(View view) {
-        String joke = Jokes.getJoke();
-        Toast.makeText(this, joke, Toast.LENGTH_SHORT).show();
-        startActivity(JokeActivity.newIntent(this, joke));
+        if (Strings.isNullOrEmpty(mJoke)) {
+            Toast.makeText(this, "Has not downloaded a joke yet...", Toast.LENGTH_SHORT).show();
+        } else {
+            startActivity(JokeActivity.newIntent(this, mJoke));
+        }
+    }
+
+    private static class EndpointAsyncTask extends AsyncTask<Void, Void, String> {
+
+        private static MyApi sMyApiService = null;
+
+        @Override
+        protected String doInBackground(Void... params) {
+            if (sMyApiService == null) {
+                String localhostEmulatorIpAddress = "http://10.0.2.2:8080/_ah/api/";
+                MyApi.Builder builder = new MyApi.Builder(
+                        AndroidHttp.newCompatibleTransport(),
+                        new AndroidJsonFactory(),
+                        null)
+                        .setRootUrl(localhostEmulatorIpAddress)
+                        .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
+                            @Override
+                            public void initialize(AbstractGoogleClientRequest<?> request) {
+                                request.setDisableGZipContent(true);
+                            }
+                        });
+                sMyApiService = builder.build();
+            }
+            try {
+                return sMyApiService.getJoke().execute().getData();
+            } catch (IOException e) {
+                return e.getMessage();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String joke) {
+            mJoke = joke;
+        }
     }
 
 
