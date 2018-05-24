@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -22,17 +24,36 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
 
     private static String mJoke = "";
+    private static ProgressBar mProgressBar;
+    private static Button mTellJokeButton;
+
+    private static void showTellJokeButton() {
+        mProgressBar.setVisibility(View.GONE);
+        mTellJokeButton.setVisibility(View.VISIBLE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewsById();
+    }
+
+    private void findViewsById() {
+        mProgressBar = findViewById(R.id.progress_bar);
+        mTellJokeButton = findViewById(R.id.tell_joke_button);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        showProgressBar();
         new EndpointAsyncTask().execute();
+    }
+
+    private void showProgressBar() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mTellJokeButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -96,7 +117,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String joke) {
             mJoke = joke;
+            showTellJokeButton();
         }
+
     }
 
 
