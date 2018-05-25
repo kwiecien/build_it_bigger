@@ -1,6 +1,5 @@
 package com.udacity.gradle.builditbigger;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -10,24 +9,17 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.extensions.android.json.AndroidJsonFactory;
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
-import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import com.google.common.base.Strings;
 import com.kk.androidjokes.JokeActivity;
-import com.udacity.gradle.builditbigger.backend.myApi.MyApi;
-
-import java.io.IOException;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements EndpointAsyncTask.OnTaskCompleted {
 
-    private static String mJoke = "";
-    private static ProgressBar mProgressBar;
-    private static Button mTellJokeButton;
+    private String mJoke = "";
+    private ProgressBar mProgressBar;
+    private Button mTellJokeButton;
 
-    private static void showTellJokeButton() {
+    private void showTellJokeButton() {
         mProgressBar.setVisibility(View.GONE);
         mTellJokeButton.setVisibility(View.VISIBLE);
     }
@@ -48,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         showProgressBar();
-        new EndpointAsyncTask().execute();
+        new EndpointAsyncTask(this).execute();
     }
 
     private void showProgressBar() {
@@ -86,41 +78,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static class EndpointAsyncTask extends AsyncTask<Void, Void, String> {
-
-        private static MyApi sMyApiService = null;
-
-        @Override
-        protected String doInBackground(Void... params) {
-            if (sMyApiService == null) {
-                String localhostEmulatorIpAddress = "http://10.0.2.2:8080/_ah/api/";
-                MyApi.Builder builder = new MyApi.Builder(
-                        AndroidHttp.newCompatibleTransport(),
-                        new AndroidJsonFactory(),
-                        null)
-                        .setRootUrl(localhostEmulatorIpAddress)
-                        .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
-                            @Override
-                            public void initialize(AbstractGoogleClientRequest<?> request) {
-                                request.setDisableGZipContent(true);
-                            }
-                        });
-                sMyApiService = builder.build();
-            }
-            try {
-                return sMyApiService.getJoke().execute().getData();
-            } catch (IOException e) {
-                return e.getMessage();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String joke) {
-            mJoke = joke;
-            showTellJokeButton();
-        }
-
+    @Override
+    public void onTaskCompleted(String joke) {
+        mJoke = joke;
+        showTellJokeButton();
     }
-
-
 }
