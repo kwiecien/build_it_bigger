@@ -34,6 +34,8 @@ task shutDownGceLocalServer {
     group 'custom'
     description 'Shuts down GCE local development server'
     dependsOn ':backend:appengineStop'
+    mustRunAfter ':backend:appengineStart'
+    mustRunAfter ':app:connectedAndroidTest'
     doLast {
         println "Shut down GCE local development server"
     }
@@ -44,9 +46,9 @@ task runAllTests {
     description 'Runs Android Tests'
     dependsOn 'launchGceLocalServer'
     dependsOn ':app:connectedAndroidTest'
-    finalizedBy 'shutDownGceLocalServer'
+    dependsOn 'shutDownGceLocalServer'
     doLast {
-        println "Run Android Tests"
+        println "Run Android Tests in one Gradle task"
     }
 }
 
