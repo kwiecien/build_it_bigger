@@ -22,7 +22,7 @@ public class EndpointAsyncTask extends AsyncTask<Void, Void, String> {
     @Override
     protected String doInBackground(Void... params) {
         if (sMyApiService == null) {
-            String localhostEmulatorIpAddress = "http://10.0.2.2:8080/_ah/api/";
+            String localhostEmulatorIpAddress = BuildConfig.URL;
             MyApi.Builder builder = new MyApi.Builder(
                     AndroidHttp.newCompatibleTransport(),
                     new AndroidJsonFactory(),
