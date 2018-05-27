@@ -1,6 +1,8 @@
 package com.udacity.gradle.builditbigger;
 
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -20,6 +22,7 @@ public class EndpointAsyncTask extends AsyncTask<Void, Void, String> {
     }
 
     @Override
+    @Nullable
     protected String doInBackground(Void... params) {
         if (sMyApiService == null) {
             String localhostEmulatorIpAddress = BuildConfig.URL;
@@ -39,13 +42,14 @@ public class EndpointAsyncTask extends AsyncTask<Void, Void, String> {
         try {
             return sMyApiService.getJoke().execute().getData();
         } catch (IOException e) {
-            return e.getMessage();
+            Log.e(EndpointAsyncTask.class.getSimpleName(), e.getMessage());
+            return null;
         }
     }
 
     @Override
-    protected void onPostExecute(String joke) {
-        listener.onTaskCompleted(joke);
+    protected void onPostExecute(@Nullable String joke) {
+        listener.onTaskCompleted(joke != null ? joke : "Couldn't fetch the joke");
     }
 
     public interface OnTaskCompleted {
