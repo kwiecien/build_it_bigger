@@ -5,6 +5,8 @@ import android.support.test.runner.AndroidJUnit4;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,18 +28,31 @@ public class MainActivityTest {
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule<>(MainActivity.class);
+    String mJoke;
+    private CountDownLatch mSignal;
+
+    @Before
+    public void setUp() {
+        mSignal = new CountDownLatch(1);
+    }
+
+    @After
+    public void tearDown() {
+        mSignal.countDown();
+    }
 
     @Test
     public void shouldFetchData() throws InterruptedException {
-        final CountDownLatch signal = new CountDownLatch(1);
         new EndpointAsyncTask(new EndpointAsyncTask.OnTaskCompleted() {
             @Override
-            public void onTaskCompleted(String joke) {
-                assertThat(joke, not(isEmptyString()));
-                signal.countDown();
+            public void onTaskCompleted(String j) {
+                mJoke = j;
+                mSignal.countDown();
             }
         }).execute();
-        signal.await();
+        mSignal.await();
+
+        assertThat(mJoke, not(isEmptyString()));
     }
 
     @Test
